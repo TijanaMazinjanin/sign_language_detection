@@ -1,0 +1,4 @@
+.venv
+images
+model.p
+data.pickle
