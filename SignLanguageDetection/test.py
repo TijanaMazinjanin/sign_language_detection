@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import pickle
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 vid = cv2.VideoCapture(0)
 mp_hands = mp.solutions.hands
@@ -12,6 +13,9 @@ hands = mp_hands.Hands(static_image_mode = True, max_num_hands=2, min_detection_
 
 model_dict = pickle.load(open('model.p', 'rb'))
 model = model_dict['modelKNN']
+
+font_path = 'font.ttf'
+font = ImageFont.truetype(font_path, 32)
 
 while True:
     ret, frame = vid.read()
@@ -46,7 +50,27 @@ while True:
         predicted_character = prediction[0]
         print(predicted_character)
 
-        cv2.putText(frame, predicted_character, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
+        if predicted_character in ['SS', 'CC', 'ZZ', 'TJ', 'DZ']:
+            if predicted_character == 'SS':
+                letter_srb = 'Š'
+            elif predicted_character == 'CC':
+                letter_srb = 'Č'
+            elif predicted_character == 'ZZ':
+                letter_srb = 'Ž'
+            elif predicted_character == 'TJ':
+                letter_srb = 'Ć'
+            elif predicted_character == 'DZ':
+                letter_srb = 'DŽ'
+            pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            draw = ImageDraw.Draw(pil_image)
+            
+            # Draw text on the PIL image
+            draw.text((50, 50), str(letter_srb), font=font, fill=(0, 0, 0))
+            
+            # Convert back to OpenCV format
+            frame = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+        else:
+            cv2.putText(frame, predicted_character, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
                     cv2.LINE_AA)
 
     cv2.imshow('frame', frame)
